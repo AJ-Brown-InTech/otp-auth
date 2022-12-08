@@ -7,6 +7,12 @@
 */
 const express = require('express')
 const app = express()
-const http = require('https')
+const https = require('https')
+const fs = requrie('fs')
+
+
+//ssl cert & its private key
+const key = fs.readFileSync('ssl/key.pem')
+
 
 
