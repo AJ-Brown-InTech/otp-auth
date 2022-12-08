@@ -8,11 +8,13 @@
 const express = require('express')
 const app = express()
 const https = require('https')
-const fs = requrie('fs')
-
+const fs = require('fs')
+require('dotenv').config()
 
 //ssl cert & its private key
-const key = fs.readFileSync('ssl/key.pem')
+const key = process.env.KEY
+const cert = process.env.CERT
+
 
 
 
