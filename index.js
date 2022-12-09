@@ -9,7 +9,11 @@ const express = require('express')
 const app = express()
 const https = require('https')
 const fs = require('fs')
+const otp = require('otp-generator')
 require('dotenv').config()
+
+//otp service
+
 
 //ssl cert & its private key
 const key = process.env.KEY
