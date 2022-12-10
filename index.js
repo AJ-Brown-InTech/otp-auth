@@ -75,14 +75,25 @@ const sendEmail = async (code, email) =>{
 
 //server and fun happenings
 let authenticated = false
-app.use(cors())
-
+app.use(express.json())
+app.options('*', cors())
 app.get('/', (req,res,next)=>{
   if(authenticated == true){
     res.status(200).send(form)
   }else{
     res.status(401).json({"error": "not authorized"})
   }
+})
+
+app.post('/', (req,res,next)=>{
+  //Example below used in terminal to test
+  // curl --header "Content-Type: application/json" \
+  // --request POST \
+  // --data '{"username":"xyz","password":"xyz"}' \
+  // -k https://localhost:8181/
+  req.body; // JavaScript object containing the parse JSON
+  let data = req.body
+  console.log(data.username)
 })
 
 const httpsServer = require('https').createServer(sslCert,app)
