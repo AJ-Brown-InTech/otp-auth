@@ -1,98 +1,89 @@
-/*
-    1. input a phone number
-    2. check is number exist
-    3. if number exit send a random 6 digit code
-    4. if user input equals 6 digit code authorize
-    5. else throw an error/try again 
-*/
+//load dependecies
 const express = require('express')
-const app = express()
 const https = require('https')
 const fs = require('fs')
 const otp = require('otp-generator')
-require('dotenv').config()
 const nodemailer = require('nodemailer') 
-const MailListener = require('mail-listener2');
-//env vars
+const MailListener = require('mail-listener2')
+const cors = require('cors')
+const app = express()
+require('dotenv').config()
+
+//env vars 
 const key = process.env.KEY
 const cert = process.env.CERT
 const port = process.env.PORT || 8282
-let emailDate = new Date().getTime();
-let configs = {
+const sender = process.env.EMAIL
+const senderPassword = process.env.EMAILPASS
+
+/*global vars built for use in funcs later 
+these vars can be tweaked for preference
+but these are just some of the basic setups I plan to use 
+for other projects
+*/
+//ssl certificates for https verification
+const sslCert = {
+  key: fs.readFileSync(key),
+  cert: fs.readFileSync(cert)
+  }
+//smtp configuration im using outlook but you can use other 
+//service providers each service has specific port, host, etc   
+  let configs = {
     auth: {
-    	user: process.env.EMAIL,
-    	pass: process.env.EMAILPASS,
+    	user: sender,
+    	pass: senderPassword,
 		},
         service: "Outlook365",
         host: 'smtp-mail.outlook.com',
 		port: process.env.SMTPPORT,
 		secureConnection: false, //TLS require a secure connection to be false
-    tls:{
+    tls: {
         ciphers:'SSLv3'
     }
-    } 
-
-//transport emails to phone numbers
-const transport = async () =>{
-    
-    let transporter = nodemailer.createTransport(configs)
-    
-    let mailOptions = {
-     from: process.env.EMAIL, //sender email
-     to: 'ajalantbrown@gmail.com', //sender
-     subject: 'Premier One-Time Verification Code',
-     text: `Your verification code is 123.\nDo not share this code with anyone.`,
-    }
-
-    let info = await transporter.sendMail(mailOptions)
-    console.log('Message sent: %s', info.messageId);
 }
-transport().catch("pigs",console.error);
+//email time stamp 
+let emailDate = new Date().getTime();
 
-// //emial listener
-// var mailListener = new MailListener({
-//     username: configs.username,
-//     password: configs.pass,
-//     host: 'outlook.office365.com',
-//     port: 993,
-//     tls: false,
-//     connTimeout: 100000,
-//     authTimeout: 100000,
-//     debug: console.log,
-//     tlsOptions: { rejectUnauthorized: false },
-//     mailbox: "INBOX",
-//     searchFilter: ["UNSEEN", ["SINCE", emailDate]],
-//     markSeen: true,
-//     fetchUnreadOnStart: false,
-//     mailParserOptions: {streamAttachments: true},
-//     attachments: true,
-//     attachmentOptions: { directory: "attachments/" }
-//   });
-//   mailListener.start();
-//   mailListener.on("mail", function(mail, seqno, attributes){
-// 	console.log('new mail: ', mail);
-// });
+//authenticated screen template
+let verifiedHTML =  `
+<div
+  class="container"
+  style="max-width: 90%; margin: auto; padding-top: 20px"
+>
+  <h2>Welcome to the club.</h2>
+  <h4>You are officially In ✔</h4>
+  <p style="margin-bottom: 30px;">Pleas enter the sign up OTP to get started</p>
+  <h1 style="font-size: 40px; letter-spacing: 2px; text-align:center;"></h1>
+</div>
+`
+//specific code sent to a succesful username/password combo
+let code = otp.generate(6, { upperCaseAlphabets: false, specialChars: false });
 
-// mailListener.on("attachment", function(attachment){
-//   console.log("*************");
-//   console.log(attachment.path);
-// });
+//function to send verification code to emails
+const sendEmail = async (code, email) =>{
+  let transporter = nodemailer.createTransport(configs)
+  let mailOptions = {
+   from: sender, //sender email
+   to: email, //sender
+   subject: 'Premier One-Time Verification Code',
+   text: `Your verification code is ${code}.\nDo not share this code with anyone.\nSent: ${emailDate}.`,
+  }
 
-const options = {
-key: fs.readFileSync(key),
-cert: fs.readFileSync(cert)
+  let info = await transporter.sendMail(mailOptions)
+  console.log(`Message sent ${emailDate}: %s`, info.messageId);
 }
 
-const router =  (req, res)=>{
-    res.writeHead(200);
-    res.end("hello world\n");
-};
+//server and fun happenings
+let authenticated = false
+app.use(cors())
 
+app.get('/', (req,res,next)=>{
+  if(authenticated == true){
+    res.status(200).send(form)
+  }else{
+    res.status(401).json({"error": "not authorized"})
+  }
+})
 
- app.use(express.json())
-const httpsServer = require('https').createServer(options,router)
+const httpsServer = require('https').createServer(sslCert,app)
  .listen(port, ()=> (console.log(new Date() + `\n[HTTPS]: Server is listening on port ${[port]}`)))
-
-
-
-
