@@ -119,8 +119,11 @@ if(now > timeout){
  }
 })
 
-app.post('/auth/send', (req,res,next)=>{
+app.post('/send', (req,res,next)=>{
+  console.log("Initializing...")
+  
   let data = req.body.code
+
   if(data == globalOTP){
     //store a session token
     store.set('session_token', { "token" : `${token}` })
@@ -130,17 +133,19 @@ app.post('/auth/send', (req,res,next)=>{
 })
 
 app.get('/authenticated', (req,res,next)=>{
-  if(store.get('session_token') === true && today > store.get('expiration') ){
+  console.log(store.get('session_token'))
+  if(store.get('session_token') != null ){
+    console.log("succces")
     store.set('expiration',{"expire": `${timeout}`})
     res.status(200).send(verifiedHTML)
   }else if(store.get('session_token') === true && today < timeout){
-    store.clearAll()
+    store.set('session_token', { "token" : null })
     res.status(401).json({"error": "Your session has expired. Reverify to access."})
   }else{
     store.clearAll()
     res.status(401).json({"error": "Your are not authorized to access"})
   }
 })
-
+console.log(store.get('session_token'))
 const httpsServer = require('http').createServer(app)
  .listen(port, ()=> (console.log(emailDate + `\n[HTTPS]: Server is listening on port ${[port]}`)))

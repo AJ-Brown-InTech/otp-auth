@@ -19,6 +19,7 @@
     "nodemon": "^2.0.20",
     "otp-generator": "^4.0.0",
     "springedge": "^1.0.6",
-    "store": "^2.0.12"
+    "store": "^2.0.12",
+    "store2": "^2.14.2"
   }
 }
